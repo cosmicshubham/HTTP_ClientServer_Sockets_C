@@ -10,7 +10,7 @@
 #include <cstring>
 #include <sstream>
 #include <fstream>
-#define BUFF_SIZE 10240
+#define BUFF_SIZE 102400
 #define SMALL_SIZE 100
 using namespace std;
 
@@ -48,6 +48,8 @@ bool handlePUT (int& client_socket, char* filePath) {
 	char* fileSendBuff = (char*) ss.str().c_str();
 	send (client_socket, fileSendBuff, BUFF_SIZE, 0);
 	cout << "File sent to the server" << endl;
+	
+	file.close();
 	
 	return true;
 	
