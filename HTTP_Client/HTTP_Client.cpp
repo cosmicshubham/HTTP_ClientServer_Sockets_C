@@ -14,75 +14,17 @@
 #define SMALL_SIZE 100
 using namespace std;
 
-void filePathManager(char* filePath) {
-	
-	if (strcmp(filePath, "/") == 0) {
-		strcpy(filePath, "index.html");
-	}
-	if (filePath[0] == '/') {
-		string s(filePath);
-		const char* temp = s.substr(1).c_str();
-		strcpy(filePath, temp);
-	}
-	
-}
+void filePathManager(char* filePath); // handles the front "/" in file name.
+char* hostname_to_ip(char* hostname); // resolves url to ip address
+void extractContentFromResponse(char* content, char* codeline, int& responseCode);
+bool handleGET (char recvBuff[], char* filePath);
+bool handlePUT (int& client_socket, char* filePath);
 
-char* hostname_to_ip(char* hostname)
-{
-    struct hostent* he = gethostbyname(hostname);
-    struct in_addr** addr_list = (struct in_addr **) he->h_addr_list;
-	  return inet_ntoa(*addr_list[0]);
-}
-
-void extractContentFromResponse(char* content, char* codeline, int& responseCode) {
-	
-	stringstream ss(content);
-	string firstLine;
-	getline(ss, firstLine);
-	strcpy(codeline, firstLine.c_str());
-	
-	stringstream ss2(firstLine);
-	ss2 >> firstLine; // waste no use
-	ss2 >> responseCode;
-
-	return;
-}
-
-bool handleGET (char recvBuff[], char* filePath) {
-	cout << "Response Content : \n" << recvBuff << endl;
-	filePathManager(filePath);
-	
-	ofstream client_file(filePath);
-	stringstream ss;
-	ss << recvBuff;
-	
-	client_file << ss.str();
-	client_file.close();
-	cout << endl <<"File is saved on the client" << endl;
-}
-
-bool handlePUT (int& client_socket, char* filePath) {
-	
-	stringstream ss;
-	ifstream file(filePath);
-	ss << file.rdbuf();
-	string temp = ss.str();
-	
-	const char* fileSendBuff = temp.c_str();
-	send (client_socket, fileSendBuff, BUFF_SIZE, 0);
-	cout << "File sent to the server" << endl;
-	
-	file.close();
-	
-	return true;
-	
-	
-}
 
 int main(int argc, char *argv[]) {
 	
 	if (argc != 5) {
-		cout << "Invalid Arguments" << endl;
+		cout << "Invalid Arguments\nUsage: ./a.out <IP> <PORT> <GET/PUT> <fileName>\nExample: ./a.out 127.0.0.1 80 GET index.html" << endl;
 		return 1;
 	}
 	
@@ -127,4 +69,74 @@ int main(int argc, char *argv[]) {
 	cout << "Client Exiting...."<<endl;
 	close(client_socket);
 
+}
+
+void filePathManager(char* filePath) {
+	
+	// if only "/" is supplied, replace it with "index.html"
+	if (strcmp(filePath, "/") == 0) {
+		strcpy(filePath, "index.html");
+	}
+	
+	// remove first "/" from the pathname
+	if (filePath[0] == '/') {
+		string s(filePath);
+		const char* temp = s.substr(1).c_str();
+		strcpy(filePath, temp);
+	}
+	
+}
+
+char* hostname_to_ip(char* hostname)
+{
+    struct hostent* he = gethostbyname(hostname);
+    struct in_addr** addr_list = (struct in_addr **) he->h_addr_list;
+	  return inet_ntoa(*addr_list[0]);
+}
+
+void extractContentFromResponse(char* content, char* codeline, int& responseCode) {
+	
+	stringstream ss(content);
+	string firstLine;
+	getline(ss, firstLine);
+	strcpy(codeline, firstLine.c_str());
+	
+	stringstream ss2(firstLine);
+	ss2 >> firstLine; // waste no use
+	ss2 >> responseCode;
+
+	return;
+}
+
+bool handleGET (char recvBuff[], char* filePath) {
+	cout << "Response Content : \n" << recvBuff << endl;
+	filePathManager(filePath);
+	
+	// write to file
+	ofstream client_file(filePath);
+	stringstream ss;
+	ss << recvBuff;
+	
+	client_file << ss.str();
+	client_file.close();
+	
+	cout << endl <<"File is saved on the client" << endl;
+}
+
+bool handlePUT (int& client_socket, char* filePath) {
+	
+	// read from the file
+	stringstream ss;
+	ifstream client_file(filePath);
+	ss << client_file.rdbuf();
+	string temp = ss.str();
+	
+	const char* fileSendBuff = temp.c_str();
+	send (client_socket, fileSendBuff, BUFF_SIZE, 0);
+	cout << "File sent to the server" << endl;
+	
+	client_file.close();
+	
+	return true;
+	
 }
