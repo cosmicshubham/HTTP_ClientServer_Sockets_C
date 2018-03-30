@@ -107,33 +107,42 @@ int main(int argc, char* argv[]) {
 		socklen_t clientSize;
 	
 		int new_socket = accept(serv_socket, (sockaddr*) &client_addr, &clientSize);
-		if (new_socket > 0) {
-			cout << "Client connected " << endl;
+
+		int pid = fork();
+		if (pid == 0) {
+			
+			if (new_socket > 0) {
+				cout << "Client connected " << endl;
+			}
+		
+			int responseCode;
+			char recv_buff[BUFF_SIZE];
+			char send_buff[BUFF_SIZE];
+			
+			recv(new_socket, recv_buff, BUFF_SIZE, 0);
+			//cout << "String received : " << recv_buff << endl;
+			
+			stringstream ss(recv_buff);
+			string method;
+			ss >> method;
+			
+			char filePath[SMALL_SIZE];
+			ss >> filePath;
+			
+			if (method.compare("GET") == 0) {
+				handleGET(new_socket, recv_buff, filePath);
+			}
+			else if (method.compare("PUT") == 0) {
+				handlePUT(new_socket, recv_buff, filePath);			
+			}
+			close(new_socket);
+			break;
 		}
-	
-		int responseCode;
-		char recv_buff[BUFF_SIZE];
-		char send_buff[BUFF_SIZE];
-		
-		recv(new_socket, recv_buff, BUFF_SIZE, 0);
-		//cout << "String received : " << recv_buff << endl;
-		
-		stringstream ss(recv_buff);
-		string method;
-		ss >> method;
-		
-		char filePath[SMALL_SIZE];
-		ss >> filePath;
-		
-		if (method.compare("GET") == 0) {
-			handleGET(new_socket, recv_buff, filePath);
+		else {
+			close(new_socket);
 		}
-		else if (method.compare("PUT") == 0) {
-			handlePUT(new_socket, recv_buff, filePath);			
-		}
-		
-		close(new_socket);
 	
 	}
+	return 0;
 
 }
