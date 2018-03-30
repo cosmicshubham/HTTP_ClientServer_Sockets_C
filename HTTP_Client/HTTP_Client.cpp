@@ -14,6 +14,19 @@
 #define SMALL_SIZE 100
 using namespace std;
 
+void filePathManager(char* filePath) {
+	
+	if (strcmp(filePath, "/") == 0) {
+		strcpy(filePath, "index.html");
+	}
+	if (filePath[0] == '/') {
+		string s(filePath);
+		const char* temp = s.substr(1).c_str();
+		strcpy(filePath, temp);
+	}
+	
+}
+
 char* hostname_to_ip(char* hostname)
 {
     struct hostent* he = gethostbyname(hostname);
@@ -35,8 +48,17 @@ void extractContentFromResponse(char* content, char* codeline, int& responseCode
 	return;
 }
 
-bool handleGET (char recvBuff[]) {
+bool handleGET (char recvBuff[], char* filePath) {
 	cout << "Response Content : \n" << recvBuff << endl;
+	filePathManager(filePath);
+	
+	ofstream client_file(filePath);
+	stringstream ss;
+	ss << recvBuff;
+	
+	client_file << ss.str();
+	client_file.close();
+	cout << endl <<"File is saved on the client" << endl;
 }
 
 bool handlePUT (int& client_socket, char* filePath) {
@@ -96,7 +118,7 @@ int main(int argc, char *argv[]) {
 	cout << "Client received Response: "<< responseLine << endl;
 	
 	if (strcmp(method, "GET") == 0) {
-		handleGET (recvBuff);
+		handleGET (recvBuff, filePath);
 	}
 	else if (strcmp(method, "PUT") == 0 && responseCode == 200 ) {
 		handlePUT (client_socket, filePath);
