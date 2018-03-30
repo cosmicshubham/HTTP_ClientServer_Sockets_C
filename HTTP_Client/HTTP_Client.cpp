@@ -117,7 +117,7 @@ int main(int argc, char *argv[]) {
 
 	cout << "Client received Response: "<< responseLine << endl;
 	
-	if (strcmp(method, "GET") == 0) {
+	if (strcmp(method, "GET") == 0 && responseCode == 200) {
 		handleGET (recvBuff, filePath);
 	}
 	else if (strcmp(method, "PUT") == 0 && responseCode == 200 ) {
