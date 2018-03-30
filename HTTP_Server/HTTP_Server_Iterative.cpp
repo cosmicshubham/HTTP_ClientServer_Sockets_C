@@ -16,7 +16,7 @@
 
 using namespace std;
 
-bool handleGET (int new_socket, char* recv_buff, char* filePath) {
+void filePathManager(char* filePath) {
 	
 	if (strcmp(filePath, "/") == 0) {
 		strcpy(filePath, "index.html");
@@ -26,6 +26,35 @@ bool handleGET (int new_socket, char* recv_buff, char* filePath) {
 		const char* temp = s.substr(1).c_str();
 		strcpy(filePath, temp);
 	}
+	
+}
+
+bool handlePUT (int new_socket, char* recv_buff, char* filePath) {
+	
+	filePathManager(filePath);
+	cout << "File Path received: " << filePath << endl;
+	
+	char okayReply[SMALL_SIZE];
+	sprintf(okayReply, "HTTP/1.0 200 OK\r\n\r\n");
+	send (new_socket, okayReply, SMALL_SIZE, 0);
+	
+	recv(new_socket, recv_buff, BUFF_SIZE, 0);
+	
+	ofstream server_file(filePath);
+	stringstream ss;
+	ss << recv_buff;
+	server_file << ss.str();
+	server_file.close();
+	
+	cout << "File is created on the server" << endl;
+	send (new_socket, okayReply, SMALL_SIZE, 0);
+	
+	
+}
+
+bool handleGET (int new_socket, char* recv_buff, char* filePath) {
+	
+	filePathManager(filePath);
 	cout << "File Path received: " << filePath << endl;
 	stringstream ss;
 	char output[BUFF_SIZE];
@@ -93,10 +122,14 @@ int main(int argc, char* argv[]) {
 		string method;
 		ss >> method;
 		
+		char filePath[SMALL_SIZE];
+		ss >> filePath;
+		
 		if (method.compare("GET") == 0) {
-			char filePath[SMALL_SIZE];
-			ss >> filePath;
 			handleGET(new_socket, recv_buff, filePath);
+		}
+		else if (method.compare("PUT") == 0) {
+			handlePUT(new_socket, recv_buff, filePath);			
 		}
 		
 		close(new_socket);

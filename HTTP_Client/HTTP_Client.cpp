@@ -44,8 +44,9 @@ bool handlePUT (int& client_socket, char* filePath) {
 	stringstream ss;
 	ifstream file(filePath);
 	ss << file.rdbuf();
+	string temp = ss.str();
 	
-	char* fileSendBuff = (char*) ss.str().c_str();
+	const char* fileSendBuff = temp.c_str();
 	send (client_socket, fileSendBuff, BUFF_SIZE, 0);
 	cout << "File sent to the server" << endl;
 	
