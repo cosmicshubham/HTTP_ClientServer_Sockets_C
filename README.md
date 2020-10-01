@@ -24,4 +24,4 @@ This repository contains two programs: HTTP Server and Client, which are using H
 ## About Project
 
 This project is carried out as a part of Network Programming Lab Assignment at MNNIT Allahabad.
-The description and requirements are mentioned in **question.pdf** file.
+The description and requirements are mentioned in **question.pdf** file. updated readme
